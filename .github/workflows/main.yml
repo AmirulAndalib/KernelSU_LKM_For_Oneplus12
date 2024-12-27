@@ -1,4 +1,4 @@
-name: Build KernelSU LKM zip
+name: Build KernelSU NEXT LKM zip
 
 on:
   schedule:
@@ -14,8 +14,8 @@ jobs:
     - name: Download KO file
       uses: dawidd6/action-download-artifact@v3.1.2
       with:
-        repo: tiann/KernelSU
-        branch: main
+        repo: rifsxd/KernelSU-Next
+        branch: next
         workflow: build-manager.yml
         workflow_conclusion: success
         name: android14-6.1-lkm
@@ -24,8 +24,8 @@ jobs:
     - name: Download ksud file
       uses: dawidd6/action-download-artifact@v3.1.2
       with:
-        repo: tiann/KernelSU
-        branch: main
+        repo: rifsxd/KernelSU-Next
+        branch: next
         workflow: build-manager.yml
         workflow_conclusion: success
         name: ksud-aarch64-linux-android
@@ -42,11 +42,13 @@ jobs:
     - name: Get Version
       id: get_version
       run: |
-        git clone https://github.com/tiann/KernelSU kernelsu
-        cd kernelsu
+        git clone https://github.com/rifsxd/KernelSU-Next kernelsu_next
+        cd kernelsu_next
         git pull
-        git rev-list --count HEAD
-        echo "VERSION=$(expr $(git rev-list --count HEAD) + 10200)" >> $GITHUB_OUTPUT
+        VERSION_DATE=$(date -u "+%Y-%m-%d")
+        VERSION_TIME=$(TZ=Pacific/Auckland date "+%H-%M-%S")
+        VERSION_COUNT=$(git rev-list --count HEAD)
+        echo "VERSION=${VERSION_DATE}_NZST-${VERSION_TIME}_OnePlus12_Android14-6.1_r${VERSION_COUNT}" >> $GITHUB_OUTPUT
         cd ../
 
     - name: Create AK3 zip
@@ -60,10 +62,13 @@ jobs:
       with:
         files: |
           OP12-KernelSU-${{ steps.get_version.outputs.VERSION }}.zip
-        name: OnePlus12_kernelsu-${{ steps.get_version.outputs.VERSION }}
+        name: KernelSU NEXT LKM for OnePlus 12 - ${{ steps.get_version.outputs.VERSION }}
         tag_name: ${{ steps.get_version.outputs.VERSION }}
         body: |
-          Device: Oneplus 12
-          Target: OOS14, COS14
+          **Device:** OnePlus 12  
+          **Target:** OOS14, COS14  
+          **Android Version:** 14  
+          **Kernel Version:** 6.1  
+          **Build Date (NZST):** ${{ steps.get_version.outputs.VERSION }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
